@@ -26,6 +26,7 @@ if [[ $1 == "cleanup" ]]; then
 	./biosfix.sh cleanup
 else
 	./biosfix.sh biosfix_data.tar.gz
+fi
 
 cd $CDIR
 rm -rf $TMPDIR
