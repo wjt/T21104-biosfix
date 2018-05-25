@@ -1,8 +1,11 @@
-#!/bin/bash -e
+#!/bin/bash
+set -e
 
 biosfix_boot=/boot/biosfix/
 biosfix_bls=/boot/loader/entries/ostree-eos-biosfix.conf
 current_bls=/boot/loader/entries/ostree-eos-0.conf
+
+ENDLESS_IMAGE_DEVICE=/dev/mapper/endless-image-device
 
 if [[ $# -ne 1 ]]; then
 	echo "Usage: $0 <biosfix-data-file | cleanup>"
@@ -14,6 +17,10 @@ if [[ $EUID -ne 0 ]]; then
 	exit 1
 fi
 
+umount $ENDLESS_IMAGE_DEVICE || true
+mount_c=$(mktemp -d)
+mount $ENDLESS_IMAGE_DEVICE "$mount_c"
+
 mount -o remount,rw /usr
 
 if [[ $1 == "cleanup" ]]; then
@@ -21,12 +28,14 @@ if [[ $1 == "cleanup" ]]; then
 	rm -fr ${biosfix_boot}
 	rm -fr /usr/lib/modules/*biosfix*
 	rm -f ${biosfix_bls}
-	grub-editenv /boot/grub/grubenv set timeout=0
+	grub-editenv "$mount_c/endless/grub/grubenv" set timeout=0
+	umount "$mount_c"
 	echo "==> done <=="
 	exit 0
 fi
 
 cleanup() {      
+	umount "$mount_c"
 	rm -rf "${tmpdir}"
 }
 trap cleanup EXIT
@@ -67,7 +76,7 @@ echo "title [BIOSFIX]" >> ${biosfix_bls}
 sed -i '/options/s/$/ intel-spi.bios_fix=1/' ${biosfix_bls}
 
 ## GRUB
-grub-editenv /boot/grub/grubenv set timeout=-1
+grub-editenv "$mount_c/endless/grub/grubenv" set timeout=-1
 
 echo "==> done <=="
 echo "Please, reboot the system and when the menu is presented select \"Advanced ...\" and then \"[BIOSFIX]\""
