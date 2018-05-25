@@ -17,7 +17,7 @@ if [[ $EUID -ne 0 ]]; then
 	exit 1
 fi
 
-umount $ENDLESS_IMAGE_DEVICE || true
+umount $ENDLESS_IMAGE_DEVICE 2>/dev/null || true
 mount_c=$(mktemp -d)
 mount $ENDLESS_IMAGE_DEVICE "$mount_c"
 
