@@ -44,22 +44,22 @@ echo "==> Installing biosfix <=="
 biosfix_data=$1
 
 tmpdir=$(mktemp -d)
-tar -zxf ${biosfix_data} -C ${tmpdir}
+tar -zxf "$biosfix_data" -C "$tmpdir"
 
 biosfix_data_dir=${tmpdir}/biosfix_data/
 
-kver=$(cat ${biosfix_data_dir}/kernel.release)
+kver=$(cat "$biosfix_data_dir/kernel.release")
 linux_image="vmlinuz-$kver"
 linux_initrd="initramfs-$kver"
 
-cp -Rpd ${biosfix_data_dir}/modules/lib/modules/* /usr/lib/modules/
+cp -Rpd "$biosfix_data_dir"/modules/lib/modules/* /usr/lib/modules/
 
 ## kernel
 mkdir -p /boot/biosfix
-cp -Rpd ${biosfix_data_dir}/boot/* ${biosfix_boot}
+cp -Rpd "$biosfix_data_dir"/boot/* ${biosfix_boot}
 
 ## initramfs
-dracut -N --force ${biosfix_boot}/${linux_initrd} $kver
+dracut -N --force "$biosfix_boot/$linux_initrd" "$kver"
 
 ## BLS entry
 cp ${current_bls} ${biosfix_bls}
